@@ -1,0 +1,29 @@
+#!/bin/env bash
+# The wrapper is based on the next article:
+# https://ianloic.com/2021/02/16/vscode-remote-and-the-command-line/
+
+SCRIPT_NAME="code"
+
+code () {
+    local script=$(ls -t ~/.vscode-server/bin/*/bin/code | head -1) 
+
+    if [[ -z ${script} ]]
+    then
+        echo "VSCode remote script not found"
+        exit 1
+    fi
+
+    local socket=$(ls -t /run/user/$UID/vscode-ipc-*.sock | head -1)
+    if [[ -z ${socket} ]]
+    then
+        echo "VSCode IPC socket not found"
+        exit 1
+    fi
+
+    export VSCODE_IPC_HOOK_CLI=${socket}
+    ${script} $*
+}
+
+if [[ "$(basename -- "$0")" == $SCRIPT_NAME ]]; then
+    code "$@"
+fi
